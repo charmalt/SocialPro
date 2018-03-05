@@ -3,19 +3,27 @@
 # TODO: Login Page
 # TODO: Feed Page
 # TODO: User view page (Admin)
-from flask import Flask, render_template,request, url_for, redirect
-from flask_sqlalchemy import SQLAlchemy
+
+# TDD Create Flask app with Hello World
+# - Test check if hello world is returned
+# - In the test,
+#       run the app
+#       call the /hello_world endpoint
+#       assert the contents it returns has hello world
+# Requests library - allows you to get content/ post things from endpoint
+
+from flask import Flask, render_template, request, url_for, redirect
+from flask_login import current_user
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required
-from flask_login import current_user
-import pytest
+from flask_sqlalchemy import SQLAlchemy
 
 # Create app
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECRET_KEY'] = 'super-secret'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Blue24@localhost/FlaskSocial'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://social_pro:Blue24@localhost/social_pro'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_PASSWORD_SALT'] = '$2a$16$PnnIgfMwkOjGX4SkHqSOPO'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -97,15 +105,16 @@ class Post(db.Model):
         self.post_content = post_content
 
     def __repr__(self):
-        return '<Posr %r>' % self.post_content
+        return '<Post %r>' % self.post_content
 
 
 # Create a user to test with
-# @app.before_first_request
-# def create_user():
-#     db.create_all()
-#     user_datastore.create_user(email='test@xyz.com', password='test123')
-#     db.session.commit()
+@app.before_first_request
+def create_user():
+    db.create_all()
+    user_datastore.create_user(email='test@xyz.com', password='test123')
+    db.session.commit()
+
 
 if __name__ == '__main__':
     app.run()
