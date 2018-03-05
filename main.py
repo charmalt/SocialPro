@@ -1,23 +1,64 @@
-# User Profile
-# Posting Page
-# Login Page
-# Feed Page
-# User view page
-from flask import Flask, render_template
+# TODO: User Profile
+# TODO: Posting Page
+# TODO: Login Page
+# TODO: Feed Page
+# TODO: User view page (Admin)
+from flask import Flask, render_template,request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required
+from flask_login import current_user
+import pytest
 
 # Create app
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.config['SECURITY_REGISTERABLE'] = True
 app.config['SECRET_KEY'] = 'super-secret'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Blue24@localhost/FlaskSocial'
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
 app.config['SECURITY_PASSWORD_SALT'] = '$2a$16$PnnIgfMwkOjGX4SkHqSOPO'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Create database connection object
 db = SQLAlchemy(app)
+
+
+# Views
+@app.route('/')
+@login_required
+def index():
+    return 'Welcome to Social App. You are logged in.'
+
+
+@app.route('/posting')
+@login_required
+def post():
+    now_user = User.query.filter_by(email=current_user.email).first()
+    return render_template('add_post.html', now_user=now_user)
+
+
+@app.route('/user_list')
+@login_required
+def get_user_list():
+    users = User.query.all()
+    return render_template('user_list.html', users=users)
+
+
+@app.route('/add_post', methods=["POST"])
+def add_post():
+    post = Post(request.form['pcontent'], request.form['pemail'])
+    db.session.add(post)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route('/feed')
+@login_required
+def post_feed():
+    singlePost = Post.query.all()
+    return render_template('post_feed.html', singlePost=singlePost)
+
 
 # Define models
 roles_users = db.Table('roles_users',
@@ -46,20 +87,25 @@ user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 
+class Post(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    post_content = db.Column(db.String(200))
+    post_by = db.Column(db.String(50))
+
+    def __init__(self, post_content, post_by):
+        self.post_by = post_by
+        self.post_content = post_content
+
+    def __repr__(self):
+        return '<Posr %r>' % self.post_content
+
+
 # Create a user to test with
 # @app.before_first_request
 # def create_user():
 #     db.create_all()
 #     user_datastore.create_user(email='test@xyz.com', password='test123')
 #     db.session.commit()
-
-
-# Views
-@app.route('/')
-@login_required
-def home():
-    return render_template('index.html')
-
 
 if __name__ == '__main__':
     app.run()

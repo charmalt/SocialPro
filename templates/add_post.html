@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>Welcome {{now_user.email}} </h1>
+<form method = "post" action = "add_post">
+    <label> Enter post here </label>
+    <input id="pcontent" type="text" name="pcontent"/>
+    <input id="pemail" type="hidden" name ="pemail" value = {{now_user.email}}/>
+</form>
+
+</body>
+</html>
